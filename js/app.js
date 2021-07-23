@@ -1,229 +1,257 @@
-"use strict"
+"use strict";
 // обработка формы обратной связи
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("form");
+  const subscribeSection = document.getElementById("subscribe");
+  // при отправке формы - функция formSend
+  form.addEventListener("submit", formSend);
 
-	const form = document.getElementById('form');
-	// при отправке формы - функция formSend
-	form.addEventListener('submit', formSend);
+  let errormessage1, errormessage2;
 
+  async function formSend(e) {
+    // запрещается стандартная отправка формы при нажатии на кнопку
+    e.preventDefault();
+    // валидация формы
+    let error = formValidate(form);
 
-	async function formSend(e) {
-		// запрещается стандартная отправка формы при нажатии на кнопку
-		e.preventDefault();
-      // валидация формы
-		let error = formValidate(form);
+    // создаёт новый объект FormData - HTML-форму
+    let formData = new FormData(form);
 
-		// все данные полей формы	
-		let formData = new FormData(form);
-	
-		if (error === 0) {
-		   //form.classList.add('_sending');
-			form_clean(form);
-			alert("Отправка..");
-		} else {
-			alert('Ошибка при заполнении формы. Заполните обязательные поля!');
-		}
-	}
+    const tooltip = document.getElementById("tooltip");
 
-   // функция проверки формы
-	function formValidate(form) {
-		let error = 0;
-		// formReq - обязательные для заполнения поля
-		let formReq = document.querySelectorAll('.req'); 
+    if (error === 0 && tooltip.classList.contains("tooltip_show")) {
+      subscribeSection.classList.add("_sending");
+      setTimeout(() => subscribeSection.classList.remove("_sending"), 3000);
+      hideTooltip();
+      form.reset();
+    } else if (error === 0) {
+      subscribeSection.classList.add("_sending");
+      setTimeout(() => subscribeSection.classList.remove("_sending"), 3000);
+      form.reset();
+    } else {
+      showTooltip();
+    }
+  }
 
-		for (let index = 0; index < formReq.length; index++) {
-			const input = formReq[index];
-			// перед проверкой объекта удаляю из него класс err 
-			formRemoveError(input);
-			// проверка имени
-			if (input.classList.contains('name')) {
-				if (nameTest(input)) {
-					formAddError(input);
-					error++;
-					console.log('ошибка имени');
-				}
-			}else if (input.value === '') {
-					formAddError(input);
-					error++;
-				}
-			// проверка почты
-			if (input.classList.contains('email')) {
-				if (emailTest(input)) {
-					formAddError(input);
-					error++;
-					console.log('ошибка почты');
-				}
-			}else if (input.value === '') {
-					formAddError(input);
-					error++;
-				}
-			// проверка телефона
-			if (input.classList.contains('phone')) {
-				if (phoneTest(input)) {
-					formAddError(input);
-					error++;
-					console.log('ошибка телефона');
-				}
-			} else if (input.value === '') {
-				formAddError(input);
-				error++;
-			}
-		}
-		return error;
-	}
+  // функция проверки формы
+  function formValidate(form) {
+    let error = 0;
+    // formReq - обязательные для заполнения поля
+    let formReq = document.querySelectorAll(".req");
 
-	// функция добавляет объекту и его родителю класс _error
-	function formAddError(input) {
-		input.parentElement.classList.add('err');
-		input.classList.add('err');
-	}
-	// функция удаляет из объекта  и его родителю класс _error
-	function formRemoveError(input) {
-		input.parentElement.classList.remove('err');
-		input.classList.remove('err');
-	}
-	// Функция проверки name
-	function nameTest(input) {
-		let regexp = /^(?:[a-zA-Z0-9_()\s]+)|(?:[а-яА-Я0-9_()\s]+)$/;
-		return !regexp.test(input.value);
-	}
-	// Функция проверки email
-	function emailTest(input) {
-		return !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/.test(input.value);
-	}
-	// Функция проверки tel
-	function phoneTest(input) {
-		let regexp = /[\d\-\)\(\+ ]+/;
-		return !regexp.test(input.value);
-	}
-	// очистка формы после отправки
-	function form_clean(form) {
-		let inputs = form.querySelectorAll('input');
-		for (let index = 0; index < inputs.length; index++) {
-			const el = inputs[index];
-			el.value = el.getAttribute('placeholder');
-		}
-	}
+    for (let index = 0; index < formReq.length; index++) {
+      const input = formReq[index];
+      // перед проверкой объекта удаляю из него класс err
+      formRemoveError(input);
+      // проверка почты
+      if (input.classList.contains("email")) {
+        if (emailTest(input)) {
+          formAddError(input);
+          error++;
+          errormessage1 = "ошибка в почте";
+          document.getElementById("errorMessage1").innerHTML = errormessage1;
+        }
+      } else if (input.value === "") {
+        formAddError(input);
+        error++;
+      }
+      // проверка телефона
+      if (input.classList.contains("phone")) {
+        if (phoneTest(input)) {
+          formAddError(input);
+          error++;
+          errormessage2 = "ошибка в номере телефона";
+          document.getElementById("errorMessage2").innerHTML = errormessage2;
+        }
+      } else if (input.value === "") {
+        formAddError(input);
+        error++;
+      }
+    }
+    return error;
+  }
+
+  // функция добавляет объекту и его родителю класс _error
+  function formAddError(input) {
+    input.parentElement.classList.add("err");
+    input.classList.add("err");
+  }
+  // функция удаляет из объекта  и его родителю класс _error
+  function formRemoveError(input) {
+    input.parentElement.classList.remove("err");
+    input.classList.remove("err");
+  }
+  // Функция проверки email
+  function emailTest(input) {
+    return !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/.test(input.value);
+  }
+  // Функция проверки tel
+  function phoneTest(input) {
+    let regexp = /^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$/;
+    return !regexp.test(input.value);
+  }
+  // Функция показывает подсказку, если есть ошибки при заполнении формы
+  function showTooltip() {
+    tooltip.classList.add("tooltip_show");
+    const tooltipCloseBtn = document.getElementById("tooltip__close");
+
+    tooltipCloseBtn.addEventListener("click", (event) => {
+      tooltipCloseBtn.parentElement.classList.remove("tooltip_show");
+    });
+  }
+  // Функция скрывает подсказку
+  function hideTooltip() {
+    tooltip.classList.remove("tooltip_show");
+  }
 });
 
-
-"use strict"
+"use strict";
 
 window.addEventListener("load", function () {
-	if (document.querySelector('.wrapper')) {
-		setTimeout(function () {
-			document.querySelector('.wrapper').classList.add('_loaded');
-		}, 0);
-	}
+  if (document.querySelector(".wrapper")) {
+    setTimeout(function () {
+      document.querySelector(".wrapper").classList.add("_loaded");
+    }, 0);
+  }
 });
 
 let unlock = true;
 
-
-// проверка на каком устройстве открыта страница 
+// проверка на каком устройстве открыта страница
 const isMobile = {
-	Android: function () {
-		return navigator.userAgent.match(/Android/i);
-	},
-	BlackBerry: function () {
-		return navigator.userAgent.match(/BlackBerry/i);
-	},
-	iOS: function () {
-		return navigator.userAgent.match(/iPhone|iPad|iPod/i);
-	},
-	Opera: function () {
-		return navigator.userAgent.match(/Opera Mini/i);
-	},
-	Windows: function () {
-		return navigator.userAgent.match(/IEMobile/i);
-	},
-	any: function () {
-		return (
-			isMobile.Android() ||
-			isMobile.BlackBerry() ||
-			isMobile.iOS() ||
-			isMobile.Opera() ||
-			isMobile.Windows());
-	}
+  Android: function () {
+    return navigator.userAgent.match(/Android/i);
+  },
+  BlackBerry: function () {
+    return navigator.userAgent.match(/BlackBerry/i);
+  },
+  iOS: function () {
+    return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+  },
+  Opera: function () {
+    return navigator.userAgent.match(/Opera Mini/i);
+  },
+  Windows: function () {
+    return navigator.userAgent.match(/IEMobile/i);
+  },
+  any: function () {
+    return (
+      isMobile.Android() ||
+      isMobile.BlackBerry() ||
+      isMobile.iOS() ||
+      isMobile.Opera() ||
+      isMobile.Windows()
+    );
+  },
 };
 
 // если страница открыта на тачскрине добавляется класс _touch, на десктопе _pc
-if (isMobile.any() ) {
-   document.body.classList.add('_touch');
-   // переменная для всех стрелок на странице 
-   let menuArrows = document.querySelectorAll('.menu__arrow');
-   if (menuArrows.length > 0) {
-		//на каждую стрелку в массиве всех стрелок навесить событие click,
-		//а родителю добавить класс _active
-		for (let index = 0; index < menuArrows.length; index++) {
-			const menuArrow = menuArrows[index];
-			menuArrow.addEventListener("click", function(){
-            menuArrow.parentElement.classList.toggle('_active');
-			});
-		}
-	}
-
+if (isMobile.any()) {
+  document.body.classList.add("_touch");
+  // переменная для всех стрелок на странице
+  let menuArrows = document.querySelectorAll(".menu__arrow");
+  if (menuArrows.length > 0) {
+    //на каждую стрелку в массиве всех стрелок навесить событие click,
+    //а родителю добавить класс _active
+    for (let index = 0; index < menuArrows.length; index++) {
+      const menuArrow = menuArrows[index];
+      menuArrow.addEventListener("click", function () {
+        menuArrow.parentElement.classList.toggle("_active");
+      });
+    }
+  }
 } else {
-   document.body.classList.add('_pc');
+  document.body.classList.add("_pc");
 }
 
 //Меню-бургер
-const iconMenu = document.querySelector('.menu__icon');
-const menuBody = document.querySelector('.menu__body');
+const iconMenu = document.querySelector(".menu__icon");
+const menuBody = document.querySelector(".menu__body");
 if (iconMenu) {
-		iconMenu.addEventListener("click", function(e) {
-		document.body.classList.toggle('_lock');
-		iconMenu.classList.toggle("_active");
-		menuBody.classList.toggle("_active");
-	});
-
+  iconMenu.addEventListener("click", function (e) {
+    document.body.classList.toggle("_lock");
+    iconMenu.classList.toggle("_active");
+    menuBody.classList.toggle("_active");
+  });
 }
 
-
-// Прокрутка по клику в меню
-const menuLinks = document.querySelectorAll('.menu__link[data-goto]');
+////////////////////////// Прокрутка по клику в меню////////////////////////////
+const menuLinks = document.querySelectorAll(".menu__link[data-goto]");
 if (menuLinks.length > 0) {
-	menuLinks.forEach(menuLink => {
-		menuLink.addEventListener("click", onMenuLinkClick);
-	})
-	function onMenuLinkClick(e) {
-		const menuLink = e.target;
-		// нужно проверить существует ли дата-аттрибут и его объект
-		if (menuLink.dataset.goto && document.querySelector(menuLink.dataset.goto)) {
-			const gotoBlock = document.querySelector(menuLink.dataset.goto);
-			// расчет положения прокрутки
-			const gotoBlockValue = gotoBlock.getBoundingClientRect().top + pageYOffset;
-			// навигация в меню в мобильной версии
+  menuLinks.forEach((menuLink) => {
+    menuLink.addEventListener("click", onMenuLinkClick);
+  });
+  function onMenuLinkClick(e) {
+    const menuLink = e.target;
+    // нужно проверить существует ли дата-аттрибут и его объект
+    if (
+      menuLink.dataset.goto &&
+      document.querySelector(menuLink.dataset.goto)
+    ) {
+      const gotoBlock = document.querySelector(menuLink.dataset.goto);
+      // расчет положения прокрутки
+      const gotoBlockValue =
+        gotoBlock.getBoundingClientRect().top + pageYOffset;
+      // навигация в меню в мобильной версии
 
-			if (document.querySelector('.menu__icon').classList.contains('_active')) {
-				document.body.classList.remove('lock');
-				document.querySelector('.menu__icon').classList.remove('_active');
-				document.querySelector('.menu__body').classList.remove('_active');
-			}
-			// скролл к нужному месту
-			window.scrollTo({
-				top: gotoBlockValue,
-				behavior: "smooth"
-			});
-			//e.preventDefault();
-		}
-	}
+      if (document.querySelector(".menu__icon").classList.contains("_active")) {
+        document.body.classList.remove("lock");
+        document.querySelector(".menu__icon").classList.remove("_active");
+        document.querySelector(".menu__body").classList.remove("_active");
+      }
+      // скролл к нужному месту
+      window.scrollTo({
+        top: gotoBlockValue,
+        behavior: "smooth",
+      });
+    }
+  }
 }
 
-// оптимизация картинок с классом ibg
-function ibg(){
+//////////////////// оптимизация картинок с классом ibg////////////////////////
+function ibg() {
+  let ibg = document.querySelectorAll(".ibg");
+  for (var i = 0; i < ibg.length; i++) {
+    if (ibg[i].querySelector("img")) {
+      ibg[i].style.backgroundImage =
+        "url(" + ibg[i].querySelector("img").getAttribute("src") + ")";
+    }
+  }
+}
 
-	let ibg=document.querySelectorAll(".ibg");
-	for (var i = 0; i < ibg.length; i++) {
-	if(ibg[i].querySelector('img')){
-	ibg[i].style.backgroundImage = 'url('+ibg[i].querySelector('img').getAttribute('src')+')';
-	}
-	}
-	}
-	
-	ibg();
+ibg();
+
+////////////////////////// реализация кнопки "вверх"////////////////////////////
+
+// функция отслеживает прокрутку документа и добавляет-удаляет соотв. класс
+function trackScroll() {
+  const scrolled = window.pageYOffset;
+  const coords = document.documentElement.clientHeight;
+
+  if (scrolled > coords) {
+    buttonUp.classList.add("side-button-up-show");
+  }
+  if (scrolled < coords) {
+    buttonUp.classList.remove("side-button-up-show");
+  }
+}
+
+// функция прокрутки экрана вверх
+function backToTop() {
+  if (window.pageYOffset > 0) {
+    window.scrollBy(0, -50);
+    setTimeout(backToTop, 10);
+  }
+}
+
+const buttonUp = document.querySelector(".side-button-up");
+
+// scroll отслеживает прокрутку страницы
+window.addEventListener("scroll", trackScroll);
+buttonUp.addEventListener("click", backToTop);
 
 
+/////////////////////////////////////////////////////////////////////////////
 
 // Добавление Яндекс карты
 
